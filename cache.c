@@ -30,9 +30,20 @@ bool inCache(char* addr, lruCache cache){
   }
 
   for(i=0; i < (cache.maxCount); i++){
-    if(*current->address == address){
+    if(*current->address >= address && *current->address < address+16 ){
       return true;
       //move current* to head of list
+      if (current->prev != NULL){
+        current->prev->next = current->next;
+        if (current->next != NULL){
+          current->next->prev = current->prev;
+        }
+        current->prev = NULL;
+        current->next = cache.first;
+        cache.first->prev = current;
+        cache.first = current;
+      }
+
     }
     else {
       if(current->next == NULL && i < cache.maxCount-1){
