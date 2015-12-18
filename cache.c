@@ -10,13 +10,14 @@ typedef struct cacheEntry {
   int *address;
 } cacheEntry;
 
-typedef struct lruCache {
+typedef struct cacheSet {
   int maxCount;
+  int entrySize;
   cacheEntry *first;
   cacheEntry *last;
-} lruCache;
+} cacheSet;
 
-bool inCache(char* addr, lruCache cache){
+bool inCache(char* addr, cacheSet cache){
   int i;
   int address = (int)strtol(addr, NULL, 16);
   cacheEntry* current = cache.first;
@@ -30,7 +31,7 @@ bool inCache(char* addr, lruCache cache){
   }
 
   for(i=0; i < (cache.maxCount); i++){
-    if(*current->address >= address && *current->address < address+16 ){
+    if(*current->address >= address && *current->address < address+cache.entrySize ){
       return true;
       //move current* to head of list
       if (current->prev != NULL){
@@ -87,9 +88,23 @@ bool inCache(char* addr, lruCache cache){
 }
 
 int main(int argc, char *argv[]) {
-  printf("hello world\n");
 
+  if (argc != 5){
+    printf("Usage: ./cache L K N addresses.txt\n");
+    return -1;
+  }
+  else{
+    int l,k,n;
+    char* addrfile;
+    l = (int) strtol(argv[1], (char **)NULL, 10);
+    k = (int) strtol(argv[2], (char **)NULL, 10);
+    n = (int) strtol(argv[3], (char **)NULL, 10);
+    if ( l <= 0 || k <= 0 || n <= 0 ){
+      printf("Be sensible pls\n");
+      return -1;
+    }
 
+    printf("%d %d %d\n", l, k, n);
+  }
   return 0;
-
 }
