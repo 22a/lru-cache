@@ -38,12 +38,14 @@ bool inCache(char* addr, lruCache cache){
         if (current->next != NULL){
           current->next->prev = current->prev;
         }
+        else {
+          cache.last = current->prev;
+        }
         current->prev = NULL;
         current->next = cache.first;
         cache.first->prev = current;
         cache.first = current;
       }
-
     }
     else {
       if(current->next == NULL && i < cache.maxCount-1){
@@ -61,6 +63,7 @@ bool inCache(char* addr, lruCache cache){
           free(cache.last->next);
           cache.last->next = NULL;
         }
+        return false;
       }
       else {
         // we didn't match, move on to next element in cache
@@ -68,6 +71,18 @@ bool inCache(char* addr, lruCache cache){
       }
     }
   }
+
+  // didn't find address in cache, fetch it and move to front
+  scratch = malloc(sizeof(cacheEntry));
+  *scratch->address = address;
+  scratch->next = cache.first;
+  cache.first->prev = scratch;
+  cache.first = scratch;
+  // scoot back up on the list
+  cache.last = cache.last->prev;
+  free(cache.last->next);
+  cache.last->next = NULL;
+
   return false;
 }
 
