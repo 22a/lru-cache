@@ -20,14 +20,16 @@ cacheEntry* newCacheEntry(int addr, cacheEntry* prev, cacheEntry* next){
 
 typedef struct cacheSet{
   int maxCount;
+  int count;
   int entrySize;
   cacheEntry *first;
   cacheEntry *last;
 } cacheSet;
 
-cacheSet* newCacheSet(int max, int size){
+cacheSet* newCacheSet(int maxCount, int size){
   cacheSet* new = malloc(sizeof(cacheSet));
-  new -> maxCount = max;
+  new -> maxCount = maxCount;
+  new -> count = 0;
   new -> entrySize = size;
   new -> first = NULL;
   new -> last = NULL;
@@ -44,6 +46,11 @@ bool inCache(char* addr, cacheSet* cache){
   if (!current){
     // will occur on first cache access attempt
     cache->first = newCacheEntry(address-address%cache->entrySize,NULL,NULL);
+    cache->count++;
+    if(cache->count == cache->maxCount){
+      // if the cache is one way
+      cache->last = cache->first;
+    }
     return false;
   }
 
