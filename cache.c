@@ -79,11 +79,17 @@ bool inCache(char* addr, cacheSet* cache){
         scratch = newCacheEntry(address,NULL,cache->first);
         cache->first->prev = scratch;
         cache->first = scratch;
-        if (cache->last){
-          // scoot back up on the list
-          cache->last = cache->last->prev;
-          free(cache->last->next);
-          cache->last->next = NULL;
+
+        cache->count++;
+        if(cache->count == cache->maxCount){
+          // having just populated the last free slot in the set update the cacheSet object
+          scratch = cache->first;
+          while(scratch){
+            if (!scratch->next){
+              cache->last = scratch;
+            }
+            scratch = scratch->next;
+          }
         }
         return false;
       }
