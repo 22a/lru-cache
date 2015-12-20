@@ -48,7 +48,7 @@ bool inCache(char* addr, cacheSet* cache){
   }
 
   for(i=0; i < (cache->maxCount); i++){
-    if(current->address >= address && current->address < address+cache->entrySize ){
+    if(current->address <= address && address < current->address+cache->entrySize ){
       //move current* to head of list
       if (current->prev != NULL){
         current->prev->next = current->next;
