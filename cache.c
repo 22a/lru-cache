@@ -82,7 +82,23 @@ bool inCache(char* addr, cacheSet* cache){
       }
       else {
         // we didn't match, move on to next element in cache
-        current = current->next;
+        if (current->next){
+          current = current->next;
+        }
+        else {
+          //TODO: change address to address - address%cache->maxCount
+          scratch = newCacheEntry(address,NULL,cache->first);
+          cache->first->prev = scratch;
+          cache->first = scratch;
+          if (cache->last){
+            // scoot back up on the list
+            cache->last = cache->last->prev;
+            free(cache->last->next);
+            cache->last->next = NULL;
+          }
+
+          return false;
+        }
       }
     }
   }
@@ -92,11 +108,22 @@ bool inCache(char* addr, cacheSet* cache){
   cache->first->prev = scratch;
   cache->first = scratch;
   // scoot back up on the list //TODO: assert that cache.last != NULL
-  cache->last = cache->last->prev;
-  free(cache->last->next);
-  cache->last->next = NULL;
+  if (cache->last){
+    cache->last = cache->last->prev;
+    free(cache->last->next);
+    cache->last->next = NULL;
+  }
 
   return false;
+}
+
+void printCacheSetTags(cacheSet* cache){
+  cacheEntry* current = cache->first;
+  while(current){
+    printf("%d, ",current->address);
+    current = current->next;
+  }
+  printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -117,14 +144,15 @@ int main(int argc, char *argv[]) {
     }
     printf("L: %d, K: %d, N: %d\n", l, k, n);
 
-    cacheSet** cache = calloc(n,sizeof(cacheSet*));
-    for(i=0; i < n; i++){
-      cache[i] = newCacheSet(k,l);
+    cacheSet** cache = calloc(k,sizeof(cacheSet*));
+    for(i=0; i < k; i++){
+      cache[i] = newCacheSet(n,l);
     }
 
-    char* testAddrs[] = {"1000","1000","1004","1008","100C","1010"};
+    char* testAddrs[] = {"1000","1000","1004","1010","100C","1000"};
 
     for(i=0; i < 6; i++){
+      printCacheSetTags(cache[0]);
       bool b = inCache(testAddrs[i],cache[0]);
       printf(b ? "true\n" : "false\n");
     }
