@@ -146,12 +146,19 @@ int main(int argc, char *argv[]) {
   }
   else{
     int l,k,n,i;
-    char* addrfile;
+    char line[256];
     l = (int) strtol(argv[1], NULL, 10);
     k = (int) strtol(argv[2], NULL, 10);
     n = (int) strtol(argv[3], NULL, 10);
     if ( l <= 0 || k <= 0 || n <= 0 ){
       printf("Be sensible pls\n");
+      return -1;
+    }
+
+    char const* const fileName = argv[4];
+    FILE* file = fopen(fileName, "r");
+    if (!file){
+      printf("Invalid address file, could not open %s\n", argv[4]);
       return -1;
     }
     printf("L: %d, K: %d, N: %d\n", l, k, n);
@@ -161,12 +168,16 @@ int main(int argc, char *argv[]) {
       cache[i] = newCacheSet(n,l);
     }
 
-    char* testAddrs[] = {"1000","1000","1004","1010","100C","1000","2000","1010"};
+
+    while (fgets(line, sizeof(line), file)) {
+      printCacheSetTags(cache[0]);
+      bool b = inCache(line,cache[0]);
+      printf(b ? "true\n" : "false\n");
+    }
+    fclose(file);
+
 
     for(i=0; i < 8; i++){
-      printCacheSetTags(cache[0]);
-      bool b = inCache(testAddrs[i],cache[0]);
-      printf(b ? "true\n" : "false\n");
     }
   }
   return 0;
