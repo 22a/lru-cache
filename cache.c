@@ -43,7 +43,7 @@ bool inCache(char* addr, cacheSet* cache){
 
   if (!current){
     // will occur on first cache access attempt
-    cache->first = newCacheEntry(address,NULL,NULL);
+    cache->first = newCacheEntry(address-address%cache->entrySize,NULL,NULL);
     return false;
   }
 
@@ -86,8 +86,7 @@ bool inCache(char* addr, cacheSet* cache){
           current = current->next;
         }
         else {
-          //TODO: change address to address - address%cache->maxCount
-          scratch = newCacheEntry(address,NULL,cache->first);
+          scratch = newCacheEntry(address-address%cache->entrySize,NULL,cache->first);
           cache->first->prev = scratch;
           cache->first = scratch;
           if (cache->last){
@@ -104,7 +103,7 @@ bool inCache(char* addr, cacheSet* cache){
   }
 
   // didn't find address in cache, fetch it and move to front
-  scratch = newCacheEntry(address,NULL,cache->first);
+  scratch = newCacheEntry(address-address%cache->entrySize,NULL,cache->first);
   cache->first->prev = scratch;
   cache->first = scratch;
   // scoot back up on the list //TODO: assert that cache.last != NULL
