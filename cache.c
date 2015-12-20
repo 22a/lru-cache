@@ -161,9 +161,9 @@ int main(int argc, char *argv[]) {
       cache[i] = newCacheSet(n,l);
     }
 
-    char* testAddrs[] = {"1000","1000","1004","1010","100C","1000"};
+    char* testAddrs[] = {"1000","1000","1004","1010","100C","1000","2000","1010"};
 
-    for(i=0; i < 6; i++){
+    for(i=0; i < 8; i++){
       printCacheSetTags(cache[0]);
       bool b = inCache(testAddrs[i],cache[0]);
       printf(b ? "true\n" : "false\n");
