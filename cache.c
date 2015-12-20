@@ -7,32 +7,48 @@ struct cacheEntry;
 typedef struct cacheEntry {
   struct cacheEntry *next;
   struct cacheEntry *prev;
-  int *address;
+  int address;
 } cacheEntry;
 
-typedef struct cacheSet {
+cacheEntry* newCacheEntry(int addr, cacheEntry* prev, cacheEntry* next){
+  cacheEntry* new = malloc(sizeof(cacheEntry));
+  new -> address = addr;
+  new -> prev = prev;
+  new -> next = next;
+  return new;
+}
+
+typedef struct cacheSet{
   int maxCount;
   int entrySize;
   cacheEntry *first;
   cacheEntry *last;
 } cacheSet;
 
-bool inCache(char* addr, cacheSet cache){
+cacheSet* newCacheSet(int max, int size){
+  cacheSet* new = malloc(sizeof(cacheSet));
+  new -> maxCount = max;
+  new -> entrySize = size;
+  new -> first = NULL;
+  new -> last = NULL;
+  return new;
+}
+
+bool inCache(char* addr, cacheSet* cache){
   int i;
   int address = (int)strtol(addr, NULL, 16);
-  cacheEntry* current = cache.first;
+  printf("address: %d\n", address);
+  cacheEntry* current = cache->first;
   cacheEntry* scratch;
 
-  if (current == NULL){
+  if (!current){
     // will occur on first cache access attempt
-    current = malloc(sizeof(cacheEntry));
-    *current->address = address;
+    cache->first = newCacheEntry(address,NULL,NULL);
     return false;
   }
 
-  for(i=0; i < (cache.maxCount); i++){
-    if(*current->address >= address && *current->address < address+cache.entrySize ){
-      return true;
+  for(i=0; i < (cache->maxCount); i++){
+    if(current->address >= address && current->address < address+cache->entrySize ){
       //move current* to head of list
       if (current->prev != NULL){
         current->prev->next = current->next;
@@ -40,29 +56,27 @@ bool inCache(char* addr, cacheSet cache){
           current->next->prev = current->prev;
         }
         else {
-          cache.last = current->prev;
+          cache->last = current->prev;
         }
         current->prev = NULL;
-        current->next = cache.first;
-        cache.first->prev = current;
-        cache.first = current;
+        current->next = cache->first;
+        cache->first->prev = current;
+        cache->first = current;
       }
+      return true;
     }
     else {
-      if(current->next == NULL && i < cache.maxCount-1){
+      if(current->next == NULL && i < cache->maxCount-1){
         // if we're not at at the end of the cache and the next element in the list is null
         // make a new cache entry and put it at the start of the list
-        scratch = malloc(sizeof(cacheEntry));
-        *scratch->address = address;
-        scratch->next = cache.first;
-        cache.first->prev = scratch;
-        cache.first = scratch;
-        // scoot back up on the list
-        cache.last = cache.last->prev;
-        if (cache.last != NULL){
-          // if the something was ejected from the lru, free the memory and discard pointer to it
-          free(cache.last->next);
-          cache.last->next = NULL;
+        scratch = newCacheEntry(address,NULL,cache->first);
+        cache->first->prev = scratch;
+        cache->first = scratch;
+        if (cache->last){
+          // scoot back up on the list
+          cache->last = cache->last->prev;
+          free(cache->last->next);
+          cache->last->next = NULL;
         }
         return false;
       }
@@ -74,15 +88,13 @@ bool inCache(char* addr, cacheSet cache){
   }
 
   // didn't find address in cache, fetch it and move to front
-  scratch = malloc(sizeof(cacheEntry));
-  *scratch->address = address;
-  scratch->next = cache.first;
-  cache.first->prev = scratch;
-  cache.first = scratch;
-  // scoot back up on the list
-  cache.last = cache.last->prev;
-  free(cache.last->next);
-  cache.last->next = NULL;
+  scratch = newCacheEntry(address,NULL,cache->first);
+  cache->first->prev = scratch;
+  cache->first = scratch;
+  // scoot back up on the list //TODO: assert that cache.last != NULL
+  cache->last = cache->last->prev;
+  free(cache->last->next);
+  cache->last->next = NULL;
 
   return false;
 }
@@ -94,17 +106,28 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   else{
-    int l,k,n;
+    int l,k,n,i;
     char* addrfile;
-    l = (int) strtol(argv[1], (char **)NULL, 10);
-    k = (int) strtol(argv[2], (char **)NULL, 10);
-    n = (int) strtol(argv[3], (char **)NULL, 10);
+    l = (int) strtol(argv[1], NULL, 10);
+    k = (int) strtol(argv[2], NULL, 10);
+    n = (int) strtol(argv[3], NULL, 10);
     if ( l <= 0 || k <= 0 || n <= 0 ){
       printf("Be sensible pls\n");
       return -1;
     }
+    printf("L: %d, K: %d, N: %d\n", l, k, n);
 
-    printf("%d %d %d\n", l, k, n);
+    cacheSet** cache = calloc(n,sizeof(cacheSet*));
+    for(i=0; i < n; i++){
+      cache[i] = newCacheSet(k,l);
+    }
+
+    char* testAddrs[] = {"1000","1000","1004","1008","100C","1010"};
+
+    for(i=0; i < 6; i++){
+      bool b = inCache(testAddrs[i],cache[0]);
+      printf(b ? "true\n" : "false\n");
+    }
   }
   return 0;
 }
