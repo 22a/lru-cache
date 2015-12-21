@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <math.h>
 
 struct cacheEntry;
 
@@ -36,10 +37,8 @@ cacheSet* newCacheSet(int maxCount, int size){
   return new;
 }
 
-bool inCache(char* addr, cacheSet* cache){
+bool inCache(int address, cacheSet* cache){
   int i;
-  int address = (int)strtol(addr, NULL, 16);
-  printf("address: %d\n", address);
   cacheEntry* current = cache->first;
   cacheEntry* scratch;
 
@@ -135,7 +134,6 @@ void printCacheSetTags(cacheSet* cache){
     printf("%d, ",current->address);
     current = current->next;
   }
-  printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -163,22 +161,36 @@ int main(int argc, char *argv[]) {
     }
     printf("L: %d, K: %d, N: %d\n", l, k, n);
 
-    cacheSet** cache = calloc(k,sizeof(cacheSet*));
-    for(i=0; i < k; i++){
-      cache[i] = newCacheSet(n,l);
+    cacheSet** cache = calloc(n,sizeof(cacheSet*));
+    for(i=0; i < n; i++){
+      cache[i] = newCacheSet(k,l);
     }
 
+    int offsetBits = (int)ceil(log(l)/log(2));
+    int setBits = (int)ceil(log(n)/log(2));
+    printf("log2(l) = %d\n", offsetBits);
+    printf("log2(n) = %d\n", setBits);
 
+    unsigned mask = 0;
+    for(i=0;i<setBits;i++){
+      mask = mask << 1;
+      mask++;
+    }
+
+    unsigned set;
+    int address;
     while (fgets(line, sizeof(line), file)) {
-      printCacheSetTags(cache[0]);
-      bool b = inCache(line,cache[0]);
+      address = (int)strtol(line, NULL, 16);
+      printf("address: %d , ",address);
+      set = address >> offsetBits;
+      set = set & mask;
+      printf("set = %d , ",(int) set);
+      printCacheSetTags(cache[set]);
+      bool b = inCache(address,cache[set]);
       printf(b ? "true\n" : "false\n");
     }
     fclose(file);
 
-
-    for(i=0; i < 8; i++){
-    }
   }
   return 0;
 }
