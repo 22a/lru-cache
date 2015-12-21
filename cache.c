@@ -130,6 +130,7 @@ bool inCache(int address, cacheSet* cache){
 
 void printCacheSetTags(cacheSet* cache){
   cacheEntry* current = cache->first;
+  printf("contents of set: ");
   while(current){
     printf("%d, ",current->address);
     current = current->next;
@@ -179,16 +180,19 @@ int main(int argc, char *argv[]) {
 
     unsigned set;
     int address;
+    int total = 0;
     while (fgets(line, sizeof(line), file)) {
       address = (int)strtol(line, NULL, 16);
-      printf("address: %d , ",address);
+      printf("address: %d,\t",address);
       set = address >> offsetBits;
       set = set & mask;
-      printf("set = %d , ",(int) set);
+      printf("set: %d,\t",(int) set);
       printCacheSetTags(cache[set]);
       bool b = inCache(address,cache[set]);
-      printf(b ? "true\n" : "false\n");
+      total += (int)b;
+      printf(b ? "\thit\n" : "\tmiss\n");
     }
+    printf("\ntotal = %d\n", total);
     fclose(file);
 
   }
