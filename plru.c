@@ -129,7 +129,6 @@ int main(int argc, char *argv[]) {
     unsigned set;
     int address;
     int total = 0;
-    char* poop;
     while (fgets(line, sizeof(line), file)) {
       address = (int)strtol(line, NULL, 16);
       printf("address: %d,\t",address);
