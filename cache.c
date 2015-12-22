@@ -181,8 +181,16 @@ int main(int argc, char *argv[]) {
     unsigned set;
     int address;
     int total = 0;
+    //cacheSet* hash = newCacheSet(64,l);
+    //char* prev;
+
     while (fgets(line, sizeof(line), file)) {
       address = (int)strtol(line, NULL, 16);
+      //if (inCache(address,hash)){
+      //  prev = "\033[32;1m###\033[0m";
+      //}else {
+      //  prev = "   ";
+      //}
       printf("address: %d,\t",address);
       set = address >> offsetBits;
       set = set & mask;
@@ -190,7 +198,8 @@ int main(int argc, char *argv[]) {
       printCacheSetTags(cache[set]);
       bool b = inCache(address,cache[set]);
       total += (int)b;
-      printf(b ? "\thit\n" : "\tmiss\n");
+      printf(b ? "\thit\n" : "\t\033[31;1mmiss\033[0m\n");
+      //printf("%s\n",prev);
     }
     printf("\ntotal = %d\n", total);
     fclose(file);
